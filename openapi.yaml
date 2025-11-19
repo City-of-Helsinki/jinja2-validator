@@ -1,0 +1,254 @@
+openapi: 3.0.3
+info:
+  title: Jinja Template Validator API
+  version: 1.0.0
+servers:
+  - url: http://localhost:5001
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+
+  /validate:
+    post:
+      summary: Validate a Jinja template (text or file)
+      description: >
+        Accepts either JSON (with `template`) or multipart form (with `file` or `text`).
+        Optionally include `data` (JSON) and/or a variable catalog (inline list or Excel/CSV).
+        You can also provide **catalog exemptions** (e.g., `is_preview`) so they don't trigger
+        "unknown vs catalog" errors. The server already exempts `is_preview` by default.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                template:
+                  type: string
+                  description: Raw template text
+                scan:
+                  type: string
+                  enum: [auto, off, segments, lines]
+                  default: auto
+                preview:
+                  type: boolean
+                  default: false
+                permissive:
+                  type: boolean
+                  default: false
+                custom_delims:
+                  type: object
+                  properties:
+                    var_start: { type: string, example: "{{" }
+                    var_end:   { type: string, example: "}}" }
+                    block_start: { type: string, example: "{%" }
+                    block_end:   { type: string, example: "%}" }
+                data:
+                  type: object
+                  additionalProperties: true
+                varlist:
+                  type: array
+                  description: Catalog whitelist as array
+                  items: { type: string }
+                varlist_mode:
+                  type: string
+                  enum: [head, fullpath]
+                  default: head
+                varlist_exempt:
+                  description: >
+                    Variables to **ignore** in catalog checking (e.g., `is_preview`).
+                    The server has `is_preview` exempt by default; you may add more here.
+                  oneOf:
+                    - type: array
+                      items: { type: string }
+                    - type: string
+                      description: Comma/newline-separated list (e.g., "is_preview, another_flag")
+              required:
+                - template
+            examples:
+              json-basic:
+                summary: Minimal JSON example
+                value:
+                  template: "{% if is_preview %}ESIKATSELUVERSIO{% endif %} {{ projektin_nimi }}"
+              json-with-catalog-and-exemptions:
+                summary: JSON with catalog list + exemptions
+                value:
+                  template: "{{ projektin_nimi }} {{ other_var }}"
+                  data:
+                    projektin_nimi: "Kaavahanke"
+                  scan: auto
+                  preview: false
+                  permissive: false
+                  varlist: ["projektin_nimi", "kaavanumero"]
+                  varlist_mode: head
+                  varlist_exempt: ["is_preview", "another_flag"]
+
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: "Template file (.docx or text). If omitted, use `text` below."
+                text:
+                  type: string
+                  description: "Raw template text (when no file)."
+                data_json:
+                  type: string
+                  description: "JSON string for sample data"
+                scan:
+                  type: string
+                  enum: [auto, off, segments, lines]
+                  default: auto
+                preview: { type: string, enum: ["true","false"], default: "false" }
+                permissive: { type: string, enum: ["true","false"], default: "false" }
+                encoding:
+                  type: string
+                  description: "Text file encoding (for uploaded text files)"
+                  enum: [auto, utf-8, utf-8-sig, cp1252, latin-1]
+                  default: auto
+                custom_delims:
+                  type: string
+                  description: "JSON string with var_start/var_end/block_start/block_end"
+                varlist_file:
+                  type: string
+                  format: binary
+                  description: "Excel (.xlsx) or CSV with allowed variables"
+                varlist_json:
+                  type: string
+                  description: "JSON array as string with allowed variables"
+                varlist_mode:
+                  type: string
+                  enum: [head, fullpath]
+                varlist_sheet:
+                  type: string
+                  description: "(xlsx) Sheet name"
+                varlist_column:
+                  type: string
+                  description: "(xlsx/csv) Column header/name or column letter (xlsx) / 1-based index (csv)"
+                varlist_has_header:
+                  type: string
+                  enum: ["true","false"]
+                  description: "Defaults to true. When false, CSV: start at first row; XLSX: don't skip header."
+                varlist_encoding:
+                  type: string
+                  description: "(csv) e.g., utf-8, cp1252"
+                varlist_exempt_json:
+                  type: string
+                  description: "JSON array string of variables to exempt (e.g., [\"is_preview\",\"another_flag\"])"
+                varlist_exempt:
+                  type: string
+                  description: "Comma/newline-separated exemptions (e.g., \"is_preview, another_flag\")"
+            examples:
+              multipart-docx-with-excel-catalog:
+                summary: .docx + Excel catalog (column header) + exemptions
+                value:
+                  # NOTE: This is an illustrative example; actual multipart bodies are built by clients.
+                  # Use a tool like curl or Postman to send real multipart/form-data with files.
+                  scan: "auto"
+                  preview: "false"
+                  permissive: "false"
+                  varlist_mode: "head"
+                  varlist_sheet: "Vars"
+                  varlist_column: "variable_name"
+                  varlist_has_header: "true"
+                  varlist_exempt: "is_preview, another_flag"
+
+      responses:
+        "200":
+          description: Validation OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationResult"
+        "422":
+          description: Validation issues found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationResult"
+
+components:
+  schemas:
+    ValidationResult:
+      type: object
+      properties:
+        ok: { type: boolean }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              type: { type: string, description: "e.g., syntax, render, undefined, disallowed_filters, scan_unclosed_block" }
+              message: { type: string }
+              line: { type: integer }
+              excerpt: { type: string }
+              docx_location: { type: string }
+              anchor: { type: string }
+              hint: { type: string }
+              items:
+                type: array
+                items: { type: string }
+        expected_variables:
+          type: array
+          items: { type: string }
+        used_filters:
+          type: array
+          items: { type: string }
+        used_tests:
+          type: array
+          items: { type: string }
+        used_calls:
+          type: array
+          items: { type: string }
+        used_tags:
+          type: array
+          items: { type: string }
+        missing_from_data:
+          type: array
+          items:
+            type: object
+            properties:
+              path: { type: string }
+              suggestion: { type: string, nullable: true }
+              occurs_at:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    line: { type: integer }
+                    docx_location: { type: string }
+                    anchor: { type: string }
+        unused_data_paths:
+          type: array
+          items: { type: string }
+        preview:
+          type: string
+          nullable: true
+        unknown_variables:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              catalog_key: { type: string }
+              suggestion: { type: string, nullable: true }
+              occurs_at:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    line: { type: integer }
+                    docx_location: { type: string }
+                    anchor: { type: string }
