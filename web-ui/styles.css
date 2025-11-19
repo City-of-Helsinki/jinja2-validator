@@ -1,0 +1,221 @@
+/* ===== Core theme tokens (dark defaults) ====== */
+:root{
+  --bg:#0b1020; --panel:#121a30; --panel-2:#0f1629; --text:#e6ecff; --muted:#9fb0d9;
+  --brand:#6ea8fe; --ok:#2ecc71; --warn:#f39c12; --err:#ff6b6b; --chip:#1b2545;
+  --border:#223259; --hl:#fff59d;
+  --app-bg: linear-gradient(180deg,#0a1022,#0b1020 20%,#0a0f1e);
+
+  /* hints */
+  --hint-bg: rgba(255,255,255,0.05);
+  --hint-border: var(--border);
+  --hint-text: var(--muted);
+
+  /* button color vars */
+  --btn-bg: linear-gradient(180deg,#1a2648,#15203d);
+  --btn-border: #2a3967;
+  --btn-text: var(--text);
+
+  --btn-primary-bg: linear-gradient(180deg,#3a67e8,#2f58c9);
+  --btn-primary-border:#2c54bf;
+  --btn-primary-text:#fff;
+}
+
+/* Light theme palette */
+:root[data-theme="light"]{
+  --bg:#f6f7fb; --panel:#ffffff; --panel-2:#f2f4fb; --text:#1a2238; --muted:#5d6b89;
+  --brand:#2f58c9; --ok:#1b9e5a; --warn:#b46a07; --err:#d64545; --chip:#e8ecf7;
+  --border:#d8dff0; --hl:#ffe06b;
+  --app-bg: linear-gradient(180deg,#f7f9ff,#f2f6ff 38%,#ecf1ff);
+
+  /* hints */
+  --hint-bg:#f4f7ff;
+  --hint-border:#d8dff0;
+  --hint-text:#41527a;
+
+  /* button color vars */
+  --btn-bg: linear-gradient(180deg,#ffffff,#eef3ff);
+  --btn-border: #cfd7ef;
+  --btn-text:#1a2238;
+
+  --btn-primary-bg: linear-gradient(180deg,#5b86ff,#3f6cf0);
+  --btn-primary-border:#3a65e3;
+  --btn-primary-text:#fff;
+}
+
+/* ===== Base layout ===== */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--app-bg);
+  color:var(--text); font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+}
+.wrap{max-width:1100px; margin:24px auto; padding:0 16px}
+h1{font-size:22px; margin:0 0 16px; letter-spacing:.2px}
+.card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.row{display:flex; gap:16px; flex-wrap:wrap}
+.col{flex:1 1 320px; min-width:280px}
+label{display:block; font-weight:600; color:var(--muted); margin:10px 0 6px}
+input[type="text"], select, textarea{
+  width:100%; background:var(--panel-2); color:var(--text); border:1px solid var(--border);
+  border-radius:10px; padding:10px 12px; outline:none;
+}
+textarea{min-height:130px; resize:vertical; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px}
+.muted{color:var(--muted)}
+.chk{display:flex; align-items:center; gap:8px; margin:0}
+
+/* Buttons */
+.btn{
+  appearance:none;
+  border:1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.15s transform,.15s background,.15s border-color;
+}
+.btn:hover{transform:translateY(-1px); border-color:#38559c}
+.btn.primary{
+  background: var(--btn-primary-bg);
+  border-color: var(--btn-primary-border);
+  color: var(--btn-primary-text);
+}
+.btn.ghost{background:transparent}
+
+/* Chips */
+.controls{display:flex; gap:10px; flex-wrap:wrap}
+.chip{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:var(--chip); border:1px solid var(--border); font-weight:600}
+.chip.ok{background:rgba(46,204,113,.15); border-color:rgba(46,204,113,.35)}
+.chip.err{background:rgba(255,107,107,.12); border-color:rgba(255,107,107,.35)}
+.chip .dot{width:8px; height:8px; border-radius:50%}
+.dot.ok{background:var(--ok)} .dot.err{background:var(--err)} .dot.warn{background:var(--warn)}
+.right{margin-left:auto}
+
+/* Dropzone */
+.drop{
+  border:2px dashed #2a3c71; border-radius:14px; padding:18px; text-align:center; color:var(--muted);
+  background:linear-gradient(180deg,rgba(110,168,254,.08),transparent 60%);
+}
+.drop.drag{border-color:var(--brand); background:linear-gradient(180deg,rgba(110,168,254,.18),transparent 60%)}
+
+/* Lists, tags, code */
+.kv{display:grid; grid-template-columns:160px 1fr; gap:8px 14px; align-items:baseline}
+code.inline{background:var(--panel-2); padding:2px 6px; border-radius:6px; border:1px solid var(--border)}
+.list{display:grid; gap:10px}
+.issue{
+  background:var(--panel-2); border:1px solid var(--border); border-radius:12px; padding:12px;
+  max-width: 100%;
+  min-width: 0;              /* FIX: grid/flex shrink allowed */
+}
+.issue h4{margin:0 0 8px; font-size:15px}
+
+/* Codeframe/anchor excerpts must scroll instead of stretching */
+pre{
+  margin:8px 0 0;
+  background:var(--panel-2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
+  display:block;
+  width:100%;               /* <-- take container width */
+  max-width:100%;
+  overflow-x:auto;          /* <-- horizontal scroll */
+  overflow-y:hidden;
+  white-space:pre;          /* <-- no wrapping inside pre */
+  word-break:normal;
+  overflow-wrap:normal;     /* <-- prevent wrapping that changes width calc */
+}
+
+.rowline{
+  display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start;
+  max-width:100%;
+}
+.rowline > *{ min-width: 0; }  /* allow children to shrink */
+
+/* Tags and message wrapping */
+.tag{
+  display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:8px; border:1px solid var(--border);
+  background:#0a0f1e; color:var(--muted); font-size:12px;
+  overflow-wrap:anywhere; word-break:break-word; max-width:100%;
+}
+:root[data-theme="light"] .tag{ background:#eef2ff; color:#41527a; }
+
+.rowline .muted{
+  flex: 1 1 0%;
+  min-width: 0;
+  overflow-wrap:anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+.rowline .muted code{ white-space: normal !important; }
+
+/* Hint callout box (in issue cards) */
+.hint-box{
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--hint-bg);
+  border: 1px solid var(--hint-border);
+  color: var(--hint-text);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  overflow-wrap:anywhere;
+}
+.hint-box .hint-ico{ line-height: 1; user-select: none; }
+
+/* Helpers */
+.hidden{display:none}
+.toast{position:fixed; right:16px; bottom:16px; background:#132046; border:1px solid var(--border); padding:10px 12px; border-radius:10px; opacity:0; transform:translateY(10px); transition:.25s; pointer-events:none}
+.toast.show{opacity:1; transform:translateY(0)}
+
+/* Floating theme button – TOP RIGHT */
+.fab{
+  position: fixed;
+  right: 16px;
+  top: 16px;
+  z-index: 9999;
+  display:inline-flex; align-items:center; justify-content:center;
+  width: 44px; height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
+}
+.fab:hover{ transform: translateY(-1px); box-shadow: 0 14px 34px rgba(0,0,0,.28); }
+
+/* ===== Help bubbles (open on hover or keyboard focus) =================== */
+.help{
+  display:inline-flex; align-items:center; justify-content:center;
+  width: 18px; height: 18px; margin-left:6px;
+  border-radius:50%;
+  background: var(--chip);
+  color: var(--text);
+  border:1px solid var(--border);
+  font-size:12px; cursor:pointer; user-select:none; position:relative;
+}
+.help .bubble{
+  position:absolute; right:0; top: calc(100% + 8px);
+  min-width: 240px; max-width: 320px;
+  background: var(--panel-2);
+  color: var(--text);
+  border:1px solid var(--border); border-radius:10px;
+  padding:10px 12px; display:none; box-shadow:0 8px 24px rgba(0,0,0,.25);
+  z-index: 20;
+}
+.help .bubble ul{ margin:.25rem 0 .25rem 1rem; padding:0 }
+.help .bubble code.inline{ background: var(--panel); }
+
+/* Show bubble on hover and focus (keyboard accessible) */
+.help:hover .bubble,
+.help:focus .bubble,
+.help:focus-within .bubble{
+  display:block;
+}
+
+/* Make long excerpts wrap nicely in non-pre text */
+.issue .muted{ overflow-wrap:anywhere; }

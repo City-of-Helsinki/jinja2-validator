@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jinja Template Validator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="wrap">
+  <h1>Jinja Template Validator</h1>
+
+  <div class="card">
+    <div class="row">
+      <div class="col">
+        <label>API base (dev only)
+          <span class="help" tabindex="0" aria-label="API base help">?
+            <span class="bubble">Leave empty to use the same origin as this page. For local dev, e.g. <code class="inline">http://localhost:5001</code>.</span>
+          </span>
+        </label>
+        <input id="apiBase" type="text" placeholder="(defaults to same origin)" />
+      </div>
+
+      <div class="col">
+        <label>Mode
+          <span class="help" tabindex="0" aria-label="Mode help">?
+            <span class="bubble">
+              <strong>Scan</strong> controls how we continue after a syntax error:
+              <ul>
+                <li><em>auto</em>: segments for DOCX, lines for text</li>
+                <li><em>off</em>: stop at first error</li>
+                <li><em>segments</em>: scan DOCX paragraphs/cells</li>
+                <li><em>lines</em>: scan text line-by-line</li>
+              </ul>
+            </span>
+          </span>
+        </label>
+        <div class="controls">
+          <select id="scan" title="Scan mode">
+            <option value="auto" selected>Scan: auto</option>
+            <option value="off">Scan: off (first error only)</option>
+            <option value="segments">Scan: DOCX segments</option>
+            <option value="lines">Scan: text lines</option>
+          </select>
+          <select id="encoding" title="For text files only">
+            <option value="auto" selected>Encoding: auto</option>
+            <option>utf-8</option><option>utf-8-sig</option><option>cp1252</option><option>latin-1</option>
+          </select>
+          <label class="chk">
+            <input id="preview" type="checkbox" />
+            <span>Preview</span>
+            <span class="help" tabindex="0" aria-label="Preview help">?
+              <span class="bubble">If sample data is provided, renders the template to catch runtime <em>undefined</em> errors. No files are stored.</span>
+            </span>
+          </label>
+          <label class="chk">
+            <input id="permissive" type="checkbox" />
+            <span>Permissive</span>
+            <span class="help" tabindex="0" aria-label="Permissive help">?
+              <span class="bubble">Turns off policy checks for filters/tags/calls (syntax and other checks still apply).</span>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <div class="col">
+        <label>Upload .docx / .txt
+          <span class="help" tabindex="0" aria-label="Upload help">?
+            <span class="bubble">Drop a Word (.docx) or plain text file. For .docx, we’ll show friendly locations like “Body ▸ Paragraph 3”.</span>
+          </span>
+        </label>
+        <div id="drop" class="drop">
+          <div>Drop file here or <label style="text-decoration:underline; cursor:pointer">
+            browse<input id="file" type="file" accept=".docx,.txt,.jinja,.j2,.tmpl,.md,.html,.htm,.tex,.rst,.csv,.tsv,.json,.yml,.yaml,.ini" style="display:none" />
+          </label></div>
+          <div id="fileInfo" class="muted" style="margin-top:6px">No file selected.</div>
+        </div>
+
+        <label style="margin-top:12px">…or paste template text
+          <span class="help" tabindex="0" aria-label="Paste text help">?
+            <span class="bubble">If no file is chosen, the pasted text below will be validated.</span>
+          </span>
+        </label>
+        <textarea id="text" placeholder="Paste template text here (ignored if a file is uploaded)"></textarea>
+      </div>
+
+      <div class="col">
+        <label>Sample data (JSON, optional)
+          <span class="help" tabindex="0" aria-label="Sample data help">?
+            <span class="bubble">Provide JSON to check missing paths and (with Preview) runtime undefined errors. Leave empty to disable “Missing variable” checks.</span>
+          </span>
+        </label>
+        <textarea id="data" placeholder='{"projektin_nimi":"Kaavahanke"}'></textarea>
+
+        <details style="margin-top:12px">
+          <summary class="muted">Advanced: variable catalog (Excel/CSV or list)</summary>
+          <div class="row" style="margin-top:8px">
+            <div class="col">
+              <label>Catalog file (.xlsx / .csv)
+                <span class="help" tabindex="0" aria-label="Catalog file help">?
+                  <span class="bubble">Provide a list of allowed variables. We’ll flag any variables used in the template that are not in the catalog.</span>
+                </span>
+              </label>
+              <input id="varFile" type="file" accept=".xlsx,.csv" />
+            </div>
+            <div class="col">
+              <label>Mode
+                <span class="help" tabindex="0" aria-label="Catalog mode help">?
+                  <span class="bubble"><strong>head</strong> checks just the top-level name (e.g. <code>order</code> from <code>order.number</code>). <strong>fullpath</strong> checks the entire dotted path.</span>
+                </span>
+              </label>
+              <select id="varMode">
+                <option value="head" selected>head (top-level)</option>
+                <option value="fullpath">fullpath</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <div class="col">
+              <label>Sheet (xlsx)
+                <span class="help" tabindex="0" aria-label="Sheet help">?
+                  <span class="bubble">Optional. If empty, the first sheet is used.</span>
+                </span>
+              </label>
+              <input id="varSheet" type="text" placeholder="(first sheet by default)" />
+            </div>
+            <div class="col">
+              <label>Column (xlsx/csv)
+                <span class="help" tabindex="0" aria-label="Column help">?
+                  <span class="bubble">Excel: letter (A,B,…) or header name. CSV: header name or 1-based column index.</span>
+                </span>
+              </label>
+              <input id="varColumn" type="text" placeholder="e.g. Variables or B or 1" />
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <div class="col">
+              <label class="chk">
+                <input id="varHasHeader" type="checkbox" checked />
+                <span>First row is header</span>
+              </label>
+            </div>
+            <div class="col">
+              <label>CSV encoding
+                <span class="help" tabindex="0" aria-label="CSV encoding help">?
+                  <span class="bubble">Only for CSV. Defaults to UTF-8. For legacy files, try cp1252.</span>
+                </span>
+              </label>
+              <select id="varCsvEnc">
+                <option value="utf-8" selected>utf-8</option>
+                <option value="cp1252">cp1252</option>
+                <option value="latin-1">latin-1</option>
+              </select>
+            </div>
+          </div>
+
+          <label style="margin-top:8px">…or paste list (JSON array or newline/comma separated)
+            <span class="help" tabindex="0" aria-label="Catalog list help">?
+              <span class="bubble">Example JSON array: <code class="inline">["order","customer","is_preview"]</code></span>
+            </span>
+          </label>
+          <textarea id="varList" placeholder='["projektin_nimi","kaavanumero"]'></textarea>
+        </details>
+
+        <details style="margin-top:12px">
+          <summary class="muted">Advanced: custom delimiters</summary>
+          <div class="row" style="margin-top:8px">
+            <div class="col">
+              <label>Var start</label><input id="varStart" type="text" placeholder="{{" />
+            </div>
+            <div class="col">
+              <label>Var end</label><input id="varEnd" type="text" placeholder="}}" />
+            </div>
+            <div class="col">
+              <label>Block start</label><input id="blkStart" type="text" placeholder="{%" />
+            </div>
+            <div class="col">
+              <label>Block end</label><input id="blkEnd" type="text" placeholder="%}" />
+            </div>
+          </div>
+          <div class="muted" style="margin-top:6px">Only fill these if your system uses non-default delimiters (e.g., <code class="inline">[[ ]]</code>).</div>
+        </details>
+      </div>
+    </div>
+
+    <div class="controls" style="margin-top:14px">
+      <button id="run" class="btn primary">Validate</button>
+      <button id="clear" class="btn ghost">Clear</button>
+      <span class="muted">No files are stored. Everything is sent once to the API and discarded.</span>
+      <span class="right"></span>
+      <button id="download" class="btn ghost hidden">Download JSON report</button>
+    </div>
+  </div>
+
+  <div id="results" class="card" style="margin-top:16px; display:none">
+    <div id="summary" class="controls" style="margin-bottom:10px"></div>
+    <div id="issues" class="list"></div>
+    <div id="extras" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- Floating theme toggle: top-right -->
+<button id="themeBtn" class="fab" type="button" aria-pressed="false" title="Toggle light/dark">🌙</button>
+
+<div id="toast" class="toast">Copied!</div>
+
+<script src="app.js"></script>
+</body>
+</html>
