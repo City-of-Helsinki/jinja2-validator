@@ -790,6 +790,7 @@ class JinjaTemplateValidator:
         render_preview: bool = False,
         preview_max_chars: int = 20000,
     ) -> ValidationResult:
+        template_str = template_str.replace("{{r ", "{{ ")
         try:
             ast = self.env.parse(template_str)
         except TemplateSyntaxError as e:
